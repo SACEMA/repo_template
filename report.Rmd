@@ -1,0 +1,75 @@
+---
+title: "Example report"
+subtitle: 'DRAFT'
+author: "Name"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+fontsize: 12pt
+output:
+  pdf_document:
+    fig_caption: yes
+    highlight: tango
+    latex_engine: xelatex
+  word_document:
+    fig_caption: true
+  html_document:
+    df_print: paged
+header-includes: \usepackage{fancyhdr}
+mainfont: Arial
+geometry: margin=.7in
+papersize: a4
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(deSolve)
+library(ggplot2)
+
+source('functions.R')
+pp <- readxl::read_excel('parameters.xlsx', sheet = 'parameters')
+values <- as.list(pp$Value)
+names(values) <- pp$Code
+```
+
+```{r run, echo = FALSE}
+# Run models
+
+sir_out <- run_model(sir)
+sis_out <- run_model(sis)
+out <- data.frame(rbind(cbind(sir_out, model = 'SIR')
+                        , cbind(sis_out, model = 'SIS')
+))
+```
+
+# Model functions
+
+```{r show, echo = TRUE}
+
+# SIR model definition
+sir
+
+# SIS model definition
+sis
+
+# Function to run models
+run_model
+
+```
+
+## Parameter Table
+
+```{r table, echo=FALSE, include = TRUE}
+knitr::kable(pp[, -ncol(pp)])
+```
+
+## Example Plot
+
+```{r plot, echo=FALSE}
+(ggplot(out)
+ + aes(x = time, y = I, color = model)
+ + geom_line(size = 1.5)
+ + xlab('Time (in disease generations)')
+ + ylab('Proportion of the population infected')
+ + theme_bw()
+)
+```
